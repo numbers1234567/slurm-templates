@@ -1,0 +1,60 @@
+# https://guides.hpc.utdallas.edu/
+
+# Show only nodes with free resources
+sinfo -t idle,mix
+
+# One line per node (useful for detailed view)
+sinfo -N -l
+
+# Custom format: partition, state, free memory, node name
+sinfo -o "%.15P %.5a %.10l %.6D %.5t %.10m %N"
+
+# Show time limits for all partitions
+sinfo -o "%P %l"
+
+# Inspect node resource allocation and hardware details
+scontrol show node [node-name]
+
+# Inspect a job
+scontrol show job 186552
+
+# Find log file path
+scontrol show job $JOBID | grep StdOut
+
+# Extend time limit
+scontrol update JobId=12345 TimeLimit=3-00:00:00
+
+# Change memory
+scontrol update JobId=12345 MinMemoryNode=64G
+
+# Hold and release
+scontrol hold 12345
+scontrol release 12345
+
+# Inspect finished/running jobs
+sacct
+
+# Cancel a specific job
+scancel 12345
+
+# Cancel all your jobs
+scancel -u $USER
+
+# Cancel only pending jobs
+scancel -u $USER -t PENDING
+
+# Cancel specific array tasks
+scancel 12345_[3-7]
+
+# Cancel jobs in a specific partition
+scancel -u $USER -p [partition-name]
+
+# GPU inventory
+scontrol show partition [partition-name] | tr ',' '\n' | grep 'gres/gpu'
+
+# Node name, state, and its GPU GRES
+sinfo -p [partition-name] -N -h -o "%N %t %G"
+
+# Totals per GPU model across all nodes
+sinfo -p [partition-name] -N -h -o "%G" | grep -o 'gpu:[^:]*:[0-9]*' \
+  | awk -F: '{c[$2]+=$3} END {for (g in c) printf "%-40s %s\n", g, c[g]}' | sort
